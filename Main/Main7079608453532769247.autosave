@@ -1,0 +1,46 @@
+double cWidth = 500;
+double cHeight = 500;
+double xScale = 2.0;
+double yScale = 2.0;
+float E = (float) Math.E;
+PImage img;
+ComplexNum[][] grid = new ComplexNum[(int) cWidth][(int) cHeight];
+Complex complex = new Complex();
+
+void preload() {
+  img = loadImage("assets/Pattern.png");
+  
+  for (double y = 0; y < cWidth; y++) {
+    for (double x = 0; x < cHeight; x++) {
+      int X = (int) x;
+      int Y = (int) y;
+      grid[X][Y] = complex.cart((x-cWidth/2.0)*xScale , (cHeight/2.0-y)*yScale);
+    }
+  }
+}
+
+void setup() {
+  colorMode(HSB, 2.0 * PI, 1.0, 1.0);
+  background(0);
+  size(1000,500);
+}
+
+drawInput() {
+  strokeWeight(1);
+  for (int y = 0; y < cWidth; y++) {
+    for (int x = 0; x < cHeight; x++) {
+      stroke(getColor(grid[x][y]));
+      point(x, y);
+    }
+  }
+}
+
+ComplexNum f(ComplexNum z) {
+  return Complex.
+}
+
+color getColor(ComplexNum z) {
+  float arg = (float) z.arg;
+  float r = (float) z.r;
+  return color(arg, 1, 1 - 1.0/log(r+E));
+}
