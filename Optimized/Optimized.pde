@@ -37,7 +37,7 @@ void initGlobals() {
 void setup() {
   // The canvas size is what dictates fluidity. If there are too many pixels the program is too slow. 500 by 500 is pretty reasonable so stick with that when interacting with the image.
   // If a more high resolution image is required comment out loadGUI(); from the load function and increase the size dimensions.
-  size(1000, 1000);
+  size(500, 500);
   load();
   drawOutput(img);
   save("output.png");
@@ -69,7 +69,7 @@ void loadInputImage() {
 // Initialize the controlP5 variable and bind it to the sketch. Then add the GUI elements to the canvas.
 void loadGUI() {
   controlP5 = new ControlP5(this);
-  
+
   addGUI();
 }
 
@@ -84,7 +84,8 @@ void drawOutput() {
   loadPixels();
   for (double y = 0.0; y < width; y++) {
     for (double x = 0.0; x < height; x++) {
-      pixels[(int) (y*width+x)] = getColor(f(Complex.cart((x-viewX)*xScale, (viewY-y)*yScale)));
+      // Set corresponding pixel to the output of whatever function is used.
+      pixels[(int) (y*width+x)] = getColor(F(Complex.cart((x-viewX)*xScale, (viewY-y)*yScale)));
     }
   }
   updatePixels();
@@ -95,8 +96,8 @@ void drawOutput(PImage image) {
   colorMode(RGB, 255);
   for (double y = 0.0; y < width; y++) {
     for (double x = 0.0; x < height; x++) {
-      // Set corresponding pixel to the output of f(z)
-      pixels[(int) (y*width+x)] = getPixel(f(Complex.cart(((x-viewX)/width)*xScale, ((viewY-y)/height)*yScale)),image);
+      // Set corresponding pixel to the output of whatever function is used.
+      pixels[(int) (y*width+x)] = getPixel(F(Complex.cart(((x-viewX)/width)*xScale, ((viewY-y)/height)*yScale)), image);
     }
   }
   updatePixels();
@@ -108,18 +109,42 @@ void drawOutput(PImage image) {
 
 // Complex function f(z) = (controlNums[0])*(img.height)*e^(pi/4)*log(z)
 ComplexNum f(ComplexNum z) {
-  ComplexNum a = Complex.cart(controlNums[0]*img.height, 0);
-  ComplexNum rotate = Complex.polar(1.0,PI/4);
-  ComplexNum newZ = Complex.cart(z.re(),z.im());
+  ComplexNum rotate = Complex.polar(1.0, controlNums[0]);
+  ComplexNum newZ = Complex.cart(z.re(), z.im());
   newZ = Complex.log(newZ);
   newZ = Complex.mult(rotate, newZ);
-  newZ = Complex.mult(a,newZ);
   return newZ;
+}
+
+// Complex function c(z), for essay.
+ComplexNum c(ComplexNum z) {
+  double R = 1.0;
+  ComplexNum numer = Complex.mult(z, R);
+  double d = Math.pow(R, 2.0) - Math.pow(z.mag(), 2.0);
+  ComplexNum denom = Complex.scalar(d);
+  z = Complex.div(numer, denom);
+  z = f(z);
+  return z;
+}
+
+ComplexNum F(ComplexNum z) {
+  double theta = controlNums[1];
+  double R = 1.0;
+  double pMag = z.mag() / (1 + (z.mag()*z.mag())/(R*R));
+  ComplexNum p = Complex.mult(pMag, Complex.unit(z.arg()));
+  double h = (pMag*z.mag())/(2*R);
+  double epsilon = Math.atan2(h-R, p.re());
+  double r = Math.sqrt(R*R - p.im()*p.im());
+  h = R + r*Math.sin(theta+epsilon);
+  p = Complex.cart(r*Math.cos(theta+epsilon), p.im());
+  z = Complex.mult(p.mag() + h/p.mag(), Complex.unit(p.arg()));
+  z = f(z);
+  return z;
 }
 
 // Complex function g(z) = z^controlNums[0]
 ComplexNum g(ComplexNum z) {
-  return Complex.pow(z,controlNums[0]);
+  return Complex.pow(z, controlNums[0]);
 }
 
 //==================================================================================================================
@@ -135,8 +160,8 @@ color getColor(ComplexNum z) {
 
 // Function to get the pixel that the complex number would land on in the regular tiling of the input img.
 color getPixel(ComplexNum z, PImage image) {
-  int a = (int) (z.re() + img.width/2) % img.width;
-  int b = (int) (z.im() + img.height/2) % img.height;
+  int a = (int) (z.re()*img.width + img.width/2) % img.width;
+  int b = (int) (z.im()*img.width + img.height/2) % img.height;
   int x, y;
 
   if (a >= 0) {
@@ -161,44 +186,49 @@ color getPixel(ComplexNum z, PImage image) {
 
 // Add the GUI elements.
 void addGUI() {
-  controlP5.addNumberbox("numberbox1",0,10,10,100,30).setMultiplier(-0.001).setValue(0.45);
-  controlP5.addButton("reset").setPosition(10,60).setSize(30,30);
-  controlP5.addToggle("dragable").setPosition(10,110).setSize(30,30).setState(false);
+  controlP5.addNumberbox("theta1", 0, 10, 10, 100, 30).setMultiplier(-0.001).setValue(0.0);
+  controlP5.addNumberbox("theta2", 0, 120, 10, 100, 30).setMultiplier(-0.001).setValue(0.0);
+  controlP5.addButton("reset").setPosition(10, 60).setSize(30, 30);
+  controlP5.addToggle("dragable").setPosition(10, 110).setSize(30, 30).setState(false);
 }
 
 // Deal with ControlP5 GUI interactions.
 void controlEvent(ControlEvent e) {
   // Reset the viewer variables when the "reset" button is clicked.
-  if(e.getController().getName()=="reset") {
+  if (e.getController().getName()=="reset") {
     viewX = width/2.0;
     viewY = height/2.0;
     xScale= 2.0;
     yScale= 2.0;
   }
-  
+
   // Update the value of the first controlNums item to be equal to the new numberbox value.
-  if(e.getController().getName()=="numberbox1"){
+  if (e.getController().getName()=="theta1") {
     controlNums[0] = (double) e.getController().getValue();
+  }
+  
+  if (e.getController().getName()=="theta2") {
+    controlNums[1] = (double) e.getController().getValue();
   }
 }
 
 // Sets offset using initial postion of the mouse when pressed.
 void mousePressed() {
   xOffset = mouseX-viewX; 
-  yOffset = mouseY-viewY; 
+  yOffset = mouseY-viewY;
 }
 
 // Add the ability to drag the output around using the offset values calculated by mousePressed().
 void mouseDragged() {
-  if(dragable) {
-   viewX = mouseX-xOffset; 
-   viewY = mouseY-yOffset;
+  if (dragable) {
+    viewX = mouseX-xOffset; 
+    viewY = mouseY-yOffset;
   }
 }
 
 // Add the ability to zoom towards and away from the origin by multiplying the scale by magnitudes of ten. ( scale *= 10^(wheelSteps/25) )
 void mouseWheel(MouseEvent e) {
   double wheelSteps = e.getCount();
-  xScale *= Math.pow(10.0,wheelSteps/25.0);
-  yScale *= Math.pow(10.0,wheelSteps/25.0);
+  xScale *= Math.pow(10.0, wheelSteps/25.0);
+  yScale *= Math.pow(10.0, wheelSteps/25.0);
 }

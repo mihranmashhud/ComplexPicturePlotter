@@ -63,15 +63,36 @@ class Complex {
   public ComplexNum mult(ComplexNum z1, ComplexNum z2) {
     return this.cart(z1.re()*z2.re() - z1.im()*z2.im(), z1.re()*z2.im() + z1.im()*z2.re());
   }
+  
+  // Return the multpilication of a real and a complex number. ( k * z )
+  public ComplexNum mult(double k, ComplexNum z) {
+    return this.cart(k*z.re(), k*z.im());
+  }
+  
+  // Return the multpilication of two complex numbers. ( z * k )
+  public ComplexNum mult(ComplexNum z, double k) {
+    return this.cart(k*z.re(), k*z.im());
+  }
 
   // Return the division of two complex numbers. ( z1 / z2 )
   public ComplexNum div(ComplexNum z1, ComplexNum z2) {
     double denom = Math.pow(z2.re(), 2) + Math.pow(z2.im(), 2);
     double aNum = z1.re()*z2.re() + z1.im()*z2.im();
-    double bNum = z1.im()*z2.im() - z1.re()*z2.im();
+    double bNum = z1.im()*z2.re() - z1.re()*z2.im();
     return this.cart(aNum / denom, bNum / denom);
   }
 
+  // Return the division of real number by complex number. ( k / z )
+  public ComplexNum div(double k, ComplexNum z) {
+    double denom = Math.pow(z.re(), 2) + Math.pow(z.im(), 2);
+    return this.cart(z.re()*k / denom, z.im()*k / denom);
+  }
+  
+  // Return the division of complex number by real number. ( z / k )
+  public ComplexNum div(ComplexNum z, double k) {
+    return this.cart(z.re() / k, z.im() / k );
+  }
+  
   // Return the conjugate of a complex number. ( z.re() - z.im() )
   public ComplexNum conjugate(ComplexNum z) {
     return this.cart(z.re(), -z.im());
@@ -83,12 +104,12 @@ class Complex {
   }
 
   // Returns a real base raised to a complex number. ( k^z )
-  public ComplexNum powKtoZ(double k, ComplexNum z) {
+  public ComplexNum pow(double k, ComplexNum z) {
     return this.polar(Math.exp(z.re()*Math.log(k)), z.im()*Math.log(k));
   }
   
   // Returns a complex base raised to a complex number. ( z1^z2 )
-  public ComplexNum powZ(ComplexNum z1, ComplexNum z2) {
+  public ComplexNum pow(ComplexNum z1, ComplexNum z2) {
     return this.polar(Math.exp(Math.log(z1.mag())*z2.re() - z1.arg()*z2.im()), Math.log(z1.mag())*z2.im() + z1.arg()*z2.re());
   }
   
@@ -108,17 +129,17 @@ class Complex {
   }
 
   // Return the logarithm of complex number using a real base. ( ln(z)/ln(k) )
-  public ComplexNum logA(double k, ComplexNum z) {
+  public ComplexNum log(double k, ComplexNum z) {
     return this.div(this.log(z), this.log(this.scalar(k)));
   }
   
   // Return the logarithm of a real number using a complex base. ( ln(k)/ln(z) )
-  public ComplexNum logZofK(ComplexNum z, double k) {
+  public ComplexNum log(ComplexNum z, double k) {
     return this.div(this.log(this.scalar(k)), this.log(z));
   }
 
   // Return the logarithm of a complex number using a complex base. ( ln(z2)/ln(z1) )
-  public ComplexNum logZ(ComplexNum z1, ComplexNum z2) {
+  public ComplexNum log(ComplexNum z1, ComplexNum z2) {
     return this.div(this.log(z2), this.log(z1));
   }
   
