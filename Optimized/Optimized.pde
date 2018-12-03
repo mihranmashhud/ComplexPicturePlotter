@@ -21,6 +21,7 @@ PImage img;
 //ControlP5 GUI variables and class
 ControlP5 controlP5;
 double[] controlNums = new double[4];
+double scale = 0.0;
 boolean dragable = false;
 
 // Initialize global variables that are dependent on the size method having been called first.
@@ -40,7 +41,7 @@ void setup() {
   size(500, 500);
   load();
   drawOutput(img);
-  save("output.png");
+  //save("output.png");
 }
 
 void draw() {
@@ -112,6 +113,7 @@ ComplexNum f(ComplexNum z) {
   ComplexNum rotate = Complex.polar(1.0, controlNums[0]);
   ComplexNum newZ = Complex.cart(z.re(), z.im());
   newZ = Complex.log(newZ);
+  newZ = Complex.mult(scale, newZ);
   newZ = Complex.mult(rotate, newZ);
   return newZ;
 }
@@ -127,18 +129,32 @@ ComplexNum c(ComplexNum z) {
   return z;
 }
 
+//ComplexNum F(ComplexNum z) {
+//  double theta = controlNums[1];
+//  double R = 1.0;
+//  double pMag = z.mag() / (1 + (z.mag()*z.mag())/(R*R));
+//  ComplexNum p = Complex.mult(pMag, Complex.unit(z.arg()));
+//  double h = (pMag*z.mag())/(2*R);
+//  double r = Math.sqrt(R*R - p.im()*p.im());
+//  double epsilon = Math.acos(p.re()/r);
+//  h = R + r*Math.sin(theta+epsilon);
+//  p = Complex.cart(r*Math.cos(theta+epsilon), p.im());
+//  z = Complex.mult(p.mag() + h/p.mag(), Complex.unit(p.arg()));
+//  z = f(z);
+//  return z;
+//}
+
 ComplexNum F(ComplexNum z) {
   double theta = controlNums[1];
-  double R = 1.0;
-  double pMag = z.mag() / (1 + (z.mag()*z.mag())/(R*R));
-  ComplexNum p = Complex.mult(pMag, Complex.unit(z.arg()));
-  double h = (pMag*z.mag())/(2*R);
-  double epsilon = Math.atan2(h-R, p.re());
-  double r = Math.sqrt(R*R - p.im()*p.im());
-  h = R + r*Math.sin(theta+epsilon);
-  p = Complex.cart(r*Math.cos(theta+epsilon), p.im());
-  z = Complex.mult(p.mag() + h/p.mag(), Complex.unit(p.arg()));
+  double denom = 1.0 + z.re()*z.re() + z.im()*z.im();
+  ComplexNum p = Complex.cart((2*z.re())/denom,(2*z.im())/denom);
+  double h = (denom - 2)/denom;
+  double reP = p.re();
+  p = Complex.cart(p.re()*Math.cos(theta) - h*Math.sin(theta), p.im());
+  h = reP*Math.sin(theta) + h*Math.cos(theta);
+  z = Complex.div(p,1-h);
   z = f(z);
+  z = c(z);
   return z;
 }
 
@@ -186,10 +202,12 @@ color getPixel(ComplexNum z, PImage image) {
 
 // Add the GUI elements.
 void addGUI() {
-  controlP5.addNumberbox("theta1", 0, 10, 10, 100, 30).setMultiplier(-0.001).setValue(0.0);
+  controlP5.addNumberbox("theta1", 0, 10, 10, 100, 30).setMultiplier(-0.001).setValue(1.248);
   controlP5.addNumberbox("theta2", 0, 120, 10, 100, 30).setMultiplier(-0.001).setValue(0.0);
+  controlP5.addNumberbox("scale", 0, 230, 10, 100, 30).setMultiplier(-0.001).setValue(0.503);
   controlP5.addButton("reset").setPosition(10, 60).setSize(30, 30);
   controlP5.addToggle("dragable").setPosition(10, 110).setSize(30, 30).setState(false);
+  controlP5.addButton("take pic").setPosition(10, 160).setSize(30, 30);
 }
 
 // Deal with ControlP5 GUI interactions.
@@ -201,14 +219,25 @@ void controlEvent(ControlEvent e) {
     xScale= 2.0;
     yScale= 2.0;
   }
+  
+  if (e.getController().getName()=="take pic") {
+    save("output.png"); 
+  }
 
   // Update the value of the first controlNums item to be equal to the new numberbox value.
   if (e.getController().getName()=="theta1") {
     controlNums[0] = (double) e.getController().getValue();
+    println(controlNums[0]);
   }
   
   if (e.getController().getName()=="theta2") {
     controlNums[1] = (double) e.getController().getValue();
+    println(controlNums[1]);
+  }
+  
+  if (e.getController().getName()=="scale") {
+    scale = e.getController().getValue();
+    println(scale);
   }
 }
 
