@@ -26,8 +26,8 @@ boolean dragable = false;
 
 // Initialize global variables that are dependent on the size method having been called first.
 void initGlobals() {
-  viewX = width/2.0;
-  viewY = height/2.0;
+  viewX = 0.0;
+  viewY = 0.0;
   controlNums[0] = 1.35;
 }
 
@@ -98,7 +98,7 @@ void drawOutput(PImage image) {
   for (double y = 0.0; y < width; y++) {
     for (double x = 0.0; x < height; x++) {
       // Set corresponding pixel to the output of whatever function is used.
-      pixels[(int) (y*width+x)] = getPixel(F(Complex.cart(((x-viewX)/width)*xScale, ((viewY-y)/height)*yScale)), image);
+      pixels[(int) (y*width+x)] = getPixel(F(Complex.cart((((x-width/2)*xScale-viewX)/width), ((viewY-(y-height/2)*yScale)/height))), image);
     }
   }
   updatePixels();
@@ -129,32 +129,16 @@ ComplexNum c(ComplexNum z) {
   return z;
 }
 
-//ComplexNum F(ComplexNum z) {
-//  double theta = controlNums[1];
-//  double R = 1.0;
-//  double pMag = z.mag() / (1 + (z.mag()*z.mag())/(R*R));
-//  ComplexNum p = Complex.mult(pMag, Complex.unit(z.arg()));
-//  double h = (pMag*z.mag())/(2*R);
-//  double r = Math.sqrt(R*R - p.im()*p.im());
-//  double epsilon = Math.acos(p.re()/r);
-//  h = R + r*Math.sin(theta+epsilon);
-//  p = Complex.cart(r*Math.cos(theta+epsilon), p.im());
-//  z = Complex.mult(p.mag() + h/p.mag(), Complex.unit(p.arg()));
-//  z = f(z);
-//  return z;
-//}
-
 ComplexNum F(ComplexNum z) {
   double theta = controlNums[1];
   double denom = 1.0 + z.re()*z.re() + z.im()*z.im();
   ComplexNum p = Complex.cart((2*z.re())/denom,(2*z.im())/denom);
   double h = (denom - 2)/denom;
-  double reP = p.re();
+  double pReal = p.re();
   p = Complex.cart(p.re()*Math.cos(theta) - h*Math.sin(theta), p.im());
-  h = reP*Math.sin(theta) + h*Math.cos(theta);
+  h = pReal*Math.sin(theta) + h*Math.cos(theta);
   z = Complex.div(p,1-h);
   z = f(z);
-  z = c(z);
   return z;
 }
 
@@ -243,15 +227,15 @@ void controlEvent(ControlEvent e) {
 
 // Sets offset using initial postion of the mouse when pressed.
 void mousePressed() {
-  xOffset = mouseX-viewX; 
-  yOffset = mouseY-viewY;
+  xOffset = mouseX*xScale-viewX; 
+  yOffset = mouseY*yScale-viewY;
 }
 
 // Add the ability to drag the output around using the offset values calculated by mousePressed().
 void mouseDragged() {
   if (dragable) {
-    viewX = mouseX-xOffset; 
-    viewY = mouseY-yOffset;
+    viewX = mouseX*xScale-xOffset; 
+    viewY = mouseY*yScale-yOffset;
   }
 }
 
