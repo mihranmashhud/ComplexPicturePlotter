@@ -38,7 +38,7 @@ void initGlobals() {
 void setup() {
   // The canvas size is what dictates fluidity. If there are too many pixels the program is too slow. 500 by 500 is pretty reasonable so stick with that when interacting with the image.
   // If a more high resolution image is required comment out loadGUI(); from the load function and increase the size dimensions.
-  size(500, 500);
+  size(800, 400);
   load();
   drawOutput(img);
   //save("output.png");
@@ -63,7 +63,7 @@ void load() {
 
 // Load the input image found in the assets folder.
 void loadInputImage() {
-  img = loadImage("assets/Pattern.png");
+  img = loadImage("assets/Pattern1.png");
   img.loadPixels();
 }
 
@@ -83,8 +83,8 @@ void drawOutput() {
   colorMode(HSB, 2.0 * PI, 1.0, 1.0);
   strokeWeight(1);
   loadPixels();
-  for (double y = 0.0; y < width; y++) {
-    for (double x = 0.0; x < height; x++) {
+  for (double y = 0.0; y < height; y++) {
+    for (double x = 0.0; x < width; x++) {
       // Set corresponding pixel to the output of whatever function is used.
       pixels[(int) (y*width+x)] = getColor(F(Complex.cart((x-viewX)*xScale, (viewY-y)*yScale)));
     }
@@ -95,8 +95,8 @@ void drawOutput() {
 // Draw the desired output image by setting the canvas' pixels array to the corresponding image pixel color found with getPixel().
 void drawOutput(PImage image) {
   colorMode(RGB, 255);
-  for (double y = 0.0; y < width; y++) {
-    for (double x = 0.0; x < height; x++) {
+  for (double y = 0.0; y < height; y++) {
+    for (double x = 0.0; x < width; x++) {
       // Set corresponding pixel to the output of whatever function is used.
       pixels[(int) (y*width+x)] = getPixel(F(Complex.cart((((x-width/2)*xScale-viewX)/width), ((viewY-(y-height/2)*yScale)/height))), image);
     }
@@ -198,8 +198,8 @@ void addGUI() {
 void controlEvent(ControlEvent e) {
   // Reset the viewer variables when the "reset" button is clicked.
   if (e.getController().getName()=="reset") {
-    viewX = width/2.0;
-    viewY = height/2.0;
+    viewX = 0.0;
+    viewY = 0.0;
     xScale= 2.0;
     yScale= 2.0;
   }
