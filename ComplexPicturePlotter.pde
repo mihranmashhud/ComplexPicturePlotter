@@ -6,7 +6,7 @@
 // To change the input image you can:
 //   a) use one of the two provided images found in the assets folder.
 //   b) add your own image to the assets folder and use that.
-// From there you will have to change the file name defined in line 75 to correspond with what asset image you chose.
+// From there you will have to change the file name defined in line 68 to correspond with what asset image you chose.
 
 //==================================================================================================================
 // GLOBALS AND INITIALIZATION OF GLOBALS
@@ -19,8 +19,8 @@ double xScale = 2.0;
 double yScale = 2.0;
 double xOffset = 0.0;
 double yOffset = 0.0;
-double viewX;
-double viewY;
+double viewX = 0.0;
+double viewY = 0.0;
 
 //Complex class object to access the Complex functions
 Complex Complex = new Complex();
@@ -34,12 +34,6 @@ double theta1 = 0.0;
 double theta2 = 0.0;
 double scale = 0.0;
 boolean dragable = false;
-
-// Initialize global variables that are dependent on the size method having been called first.
-void initGlobals() {
-  viewX = 0.0;
-  viewY = 0.0;
-}
 
 //==================================================================================================================
 // PROCESSING SETUP AND DRAW METHODS
@@ -64,7 +58,6 @@ void draw() {
 
 // Load everything up.
 void load() {
-  initGlobals();
   loadInputImage();
   loadGUI();
   loadPixels();
@@ -210,8 +203,8 @@ void addGUI() {
 void controlEvent(ControlEvent e) {
   // Reset the viewer variables when the "reset" button is clicked.
   if (e.getController().getName()=="reset") {
-    viewX = width/2.0;
-    viewY = height/2.0;
+    viewX = 0.0;
+    viewY = 0.0;
     xScale= 2.0;
     yScale= 2.0;
   }
