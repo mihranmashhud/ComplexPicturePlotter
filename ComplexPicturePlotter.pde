@@ -1,8 +1,18 @@
-import controlP5.*;
+// This is the complex function plotter which requires opening it in Processing 3.4 (go to processing.org) to work 
+// and installing the controlP5 library in Processing. (Click Sketch > Import Library > Add Library and search for controlP5)
+
+// To define your own functions go to the COMPLEX FUNCTIONS Section and look at method F().
+
+// To change the input image you can:
+//   a) use one of the two provided images found in the assets folder.
+//   b) add your own image to the assets folder and use that.
+// From there you will have to change the file name defined in line 75 to correspond with what asset image you chose.
 
 //==================================================================================================================
 // GLOBALS AND INITIALIZATION OF GLOBALS
 //==================================================================================================================
+
+import controlP5.*;
 
 // View Variables
 double xScale = 2.0;
@@ -20,7 +30,8 @@ PImage img;
 
 //ControlP5 GUI variables and class
 ControlP5 controlP5;
-double[] controlNums = new double[4];
+double theta1 = 0.0;
+double theta2 = 0.0;
 double scale = 0.0;
 boolean dragable = false;
 
@@ -28,7 +39,6 @@ boolean dragable = false;
 void initGlobals() {
   viewX = 0.0;
   viewY = 0.0;
-  controlNums[0] = 1.35;
 }
 
 //==================================================================================================================
@@ -38,10 +48,9 @@ void initGlobals() {
 void setup() {
   // The canvas size is what dictates fluidity. If there are too many pixels the program is too slow. 500 by 500 is pretty reasonable so stick with that when interacting with the image.
   // If a more high resolution image is required comment out loadGUI(); from the load function and increase the size dimensions.
-  size(800, 400);
+  size(500, 500);
   load();
   drawOutput(img);
-  //save("output.png");
 }
 
 void draw() {
@@ -63,7 +72,8 @@ void load() {
 
 // Load the input image found in the assets folder.
 void loadInputImage() {
-  img = loadImage("assets/Pattern1.png");
+  String file = "Pattern1.png";
+  img = loadImage("assets/"+file);
   img.loadPixels();
 }
 
@@ -83,8 +93,8 @@ void drawOutput() {
   colorMode(HSB, 2.0 * PI, 1.0, 1.0);
   strokeWeight(1);
   loadPixels();
-  for (double y = 0.0; y < height; y++) {
-    for (double x = 0.0; x < width; x++) {
+  for (double y = 0.0; y < width; y++) {
+    for (double x = 0.0; x < height; x++) {
       // Set corresponding pixel to the output of whatever function is used.
       pixels[(int) (y*width+x)] = getColor(F(Complex.cart((x-viewX)*xScale, (viewY-y)*yScale)));
     }
@@ -95,8 +105,8 @@ void drawOutput() {
 // Draw the desired output image by setting the canvas' pixels array to the corresponding image pixel color found with getPixel().
 void drawOutput(PImage image) {
   colorMode(RGB, 255);
-  for (double y = 0.0; y < height; y++) {
-    for (double x = 0.0; x < width; x++) {
+  for (double y = 0.0; y < width; y++) {
+    for (double x = 0.0; x < height; x++) {
       // Set corresponding pixel to the output of whatever function is used.
       pixels[(int) (y*width+x)] = getPixel(F(Complex.cart((((x-width/2)*xScale-viewX)/width), ((viewY-(y-height/2)*yScale)/height))), image);
     }
@@ -110,7 +120,7 @@ void drawOutput(PImage image) {
 
 // Complex function f(z) = (controlNums[0])*(img.height)*e^(pi/4)*log(z)
 ComplexNum f(ComplexNum z) {
-  ComplexNum rotate = Complex.polar(1.0, controlNums[0]);
+  ComplexNum rotate = Complex.polar(1.0, theta1);
   ComplexNum newZ = Complex.cart(z.re(), z.im());
   newZ = Complex.log(newZ);
   newZ = Complex.mult(scale, newZ);
@@ -130,7 +140,8 @@ ComplexNum c(ComplexNum z) {
 }
 
 ComplexNum F(ComplexNum z) {
-  double theta = controlNums[1];
+  // You can change code below to change the complex function used
+  double theta = theta2;
   double denom = 1.0 + z.re()*z.re() + z.im()*z.im();
   ComplexNum p = Complex.cart((2*z.re())/denom,(2*z.im())/denom);
   double h = (denom - 2)/denom;
@@ -139,12 +150,13 @@ ComplexNum F(ComplexNum z) {
   h = pReal*Math.sin(theta) + h*Math.cos(theta);
   z = Complex.div(p,1-h);
   z = f(z);
+  // You can change code above to change the complex function used
   return z;
 }
 
-// Complex function g(z) = z^controlNums[0]
+// Complex function g(z) = z^theta1
 ComplexNum g(ComplexNum z) {
-  return Complex.pow(z, controlNums[0]);
+  return Complex.pow(z, theta1);
 }
 
 //==================================================================================================================
@@ -181,7 +193,7 @@ color getPixel(ComplexNum z, PImage image) {
 }
 
 //==================================================================================================================
-// INTERACTION HANDLING AND GUI ELEMENTS METHODS
+// INTERACTION HANDLING AND GUI ELEMENTS' METHODS
 //==================================================================================================================
 
 // Add the GUI elements.
@@ -198,8 +210,8 @@ void addGUI() {
 void controlEvent(ControlEvent e) {
   // Reset the viewer variables when the "reset" button is clicked.
   if (e.getController().getName()=="reset") {
-    viewX = 0.0;
-    viewY = 0.0;
+    viewX = width/2.0;
+    viewY = height/2.0;
     xScale= 2.0;
     yScale= 2.0;
   }
@@ -210,16 +222,19 @@ void controlEvent(ControlEvent e) {
 
   // Update the value of the first controlNums item to be equal to the new numberbox value.
   if (e.getController().getName()=="theta1") {
-    controlNums[0] = (double) e.getController().getValue();
-    println(controlNums[0]);
+    dragable = false;
+    theta1 = (double) e.getController().getValue();
+    println(theta1);
   }
   
   if (e.getController().getName()=="theta2") {
-    controlNums[1] = (double) e.getController().getValue();
-    println(controlNums[1]);
+    dragable = false;
+    theta2 = (double) e.getController().getValue();
+    println(theta2);
   }
   
   if (e.getController().getName()=="scale") {
+    dragable = false;
     scale = e.getController().getValue();
     println(scale);
   }
